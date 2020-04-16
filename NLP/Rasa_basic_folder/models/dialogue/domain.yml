@@ -1,0 +1,123 @@
+action_factory: null
+action_names:
+- utter_greet
+- utter_goodbye
+- utter_default
+- utter_ask_howcanhelp
+- utter_ask_location
+- utter_ask_cuisine
+- utter_ask_restaurant_details_required
+- utter_ask_email_id
+- utter_email_sent
+- utter_no_email_sent
+- utter_ask_price
+- utter_searching
+- utter_location_not_found
+- action_restaurant
+- action_send_email
+- action_check_location
+actions:
+- utter_greet
+- utter_goodbye
+- utter_default
+- utter_ask_howcanhelp
+- utter_ask_location
+- utter_ask_cuisine
+- utter_ask_restaurant_details_required
+- utter_ask_email_id
+- utter_email_sent
+- utter_no_email_sent
+- utter_ask_price
+- utter_searching
+- utter_location_not_found
+- actions.ActionSearchRestaurants
+- actions.ActionSendEmail
+- actions.ActionValidateLocation
+config:
+  store_entities_as_slots: true
+entities:
+- location
+- cuisine
+- email
+- budget
+intents:
+- greet
+- affirm
+- deny
+- goodbye
+- thankyou
+- restaurant_search
+- send_email
+slots:
+  budget:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  cuisine:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  email:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  email_body:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  location:
+    initial_value: null
+    type: rasa_core.slots.TextSlot
+  location_match:
+    initial_value: null
+    type: rasa_core.slots.CategoricalSlot
+    values:
+    - zero
+    - one
+templates:
+  utter_ask_cuisine:
+  - buttons:
+    - payload: Chinese
+      title: Chinese
+    - payload: Italian
+      title: Italian
+    - payload: South Indian
+      title: South Indian
+    - payload: North Indian
+      title: North Indian
+    text: what kind of cuisine would you like?
+  utter_ask_email_id:
+  - text: "To what email id should I send it to ? \n"
+  utter_ask_howcanhelp:
+  - text: how can I help you?
+  utter_ask_location:
+  - text: In what location?
+  utter_ask_price:
+  - buttons:
+    - payload: Lesser than Rs. 300
+      title: Lesser than Rs. 300
+    - payload: Rs. 300 to 700
+      title: Rs. 300 to 700
+    - payload: More than 700
+      title: More than 700
+    text: What price range are you looking at?
+  utter_ask_restaurant_details_required:
+  - text: "Should I send you details of all the restaurants on email ? \n"
+  utter_default:
+  - text: I am unable to get that correctly
+  utter_email_sent:
+  - text: Sent. Bon Appetit!
+  utter_goodbye:
+  - text: goodbye :(
+  - text: Bye-bye
+  - text: bye have a nice day
+  - text: happy eating bye bye
+  utter_greet:
+  - text: hey there! How may i help you
+  - text: Hi, How can I help you!
+  - text: Hey, How is it going. How May I help you Today
+  utter_location_not_found:
+  - text: "Sorry, didn’t find any such location. Can you please tell again ? \n"
+  utter_no_email_sent:
+  - text: Okay. Bon Appetit!
+  utter_searching:
+  - text: "Ok, let me find some good rating restaurants for your budget range... \n"
+  utter_sorry_dont_operate:
+  - text: "Sorry, we don’t operate in this city. Can you please specify some other\
+      \ location ? \n"

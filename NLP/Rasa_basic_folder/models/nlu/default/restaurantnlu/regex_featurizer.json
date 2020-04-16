@@ -1,0 +1,14 @@
+[
+    {
+        "name": "greet",
+        "pattern": "hey[^\\s]*"
+    },
+    {
+        "name": "restaurant_search",
+        "pattern": "[0-9]*"
+    },
+    {
+        "name": "send_email",
+        "pattern": "^\\w+(\\w+)*\\@(\\w+)*\\.(\\w+)*(.(\\w+)*)?$"
+    }
+]

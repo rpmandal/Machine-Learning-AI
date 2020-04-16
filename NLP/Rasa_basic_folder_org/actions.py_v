@@ -1,0 +1,119 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
+
+# from rasa_core.actions.action import Action
+from rasa_core.actions.action import Action
+from rasa_core.events import SlotSet
+# from rasa_core.events import SlotSet
+import zomatopy
+import json
+
+zomato_config={ "user_key":"<zomato user key>"}
+global result_of_last_query
+
+class ActionSearchRestaurants(Action):
+	def name(self):
+		return 'action_restaurant'
+		
+	def run(self, dispatcher, tracker, domain):
+		config={ "user_key":"6ce88a5ec1419e335afa1c7f92f4b739"}
+		zomato = zomatopy.initialize_app(config)
+		loc = tracker.get_slot('location')
+		cuisine = tracker.get_slot('cuisine')
+        #budget= tracker.get_slot('budget')#Getting Price from slot
+
+		location_detail=zomato.get_location(loc, 1)
+		d1 = json.loads(location_detail)
+		lat=d1["location_suggestions"][0]["latitude"]
+		lon=d1["location_suggestions"][0]["longitude"]
+		cuisines_dict={'bakery':5,'chinese':25,'cafe':30,'italian':55,'biryani':7,'north indian':50,'south indian':85}
+		results=zomato.restaurant_search("", lat, lon, str(cuisines_dict.get(cuisine)), 5)
+		d = json.loads(results)
+		response=""
+		result_of_last_query=""
+		if d['results_found'] == 0:
+			response= "no results"
+		else:
+			for restaurant in d['restaurants']:
+				response=response+ "Found "+ restaurant['restaurant']['name']+ " in "+ restaurant['restaurant']['location']['address']+"\n"
+
+		result_of_last_query=result_of_last_query+ response #Added for the list of Restaurant.
+
+		dispatcher.utter_message("-----"+result_of_last_query)
+		return [SlotSet('location',loc)]
+
+
+#Checking whether city lie in tier 1 and tier 2 city.
+
+t1_t2_cities = ["Ahmedabad","Bangalore","Chennai","Delhi","Hyderabad","Kolkata","Mumbai","Pune",
+"Agra","Ajmer","Aligarh","Allahabad","Amravati","Amritsar","Asansol","Aurangabad",
+"Bareilly","Belgaum","Bhavnagar","Bhiwandi","Bhopal","Bhubaneswar",
+"Bikaner","Bokaro Steel City","Chandigarh","Coimbatore","Cuttack","Dehradun",
+"Dhanbad","Durg-Bhilai Nagar","Durgapur","Erode","Faridabad","Firozabad","Ghaziabad",
+"Gorakhpur","Gulbarga","Guntur","Gurgaon","Guwahati",
+"Gwalior","Hubli-Dharwad","Indore","Jabalpur","Jaipur","Jalandhar","Jammu","Jamnagar","Jamshedpur","Jhansi","Jodhpur",
+"Kannur","Kanpur","Kakinada","Kochi","Kottayam","Kolhapur","Kollam","Kota","Kozhikode","Kurnool","Lucknow","Ludhiana",
+"Madurai","Malappuram","Mathura","Goa","Mangalore","Meerut",
+"Moradabad","Mysore","Nagpur","Nanded","Nashik","Nellore","Noida","Palakkad","Patna","Pondicherry","Raipur","Rajkot",
+"Rajahmundry","Ranchi","Rourkela","Salem","Sangli","Siliguri",
+"Solapur","Srinagar","Sultanpur","Surat","Thiruvananthapuram","Thrissur","Tiruchirappalli","Tirunelveli","Tiruppur",
+"Ujjain","Vijayapura","Vadodara","Varanasi",
+"Vasai-Virar City","Vijayawada","Visakhapatnam","Warangal"]
+
+t1_t2_cities_list = [x.lower() for x in t1_t2_cities]
+
+# Check if the location exists. using zomato api.if found then save it, else utter not found.
+class ActionValidateLocation(Action):
+	def name(self):
+		return 'action_check_location'
+
+	def run(self, dispatcher, tracker, domain):
+		loc = tracker.get_slot('location')
+		city = str(loc)
+		# dispatcher.utter_message(city)
+
+		if city.lower() in t1_t2_cities_list:
+			return [SlotSet('location_match',"one")]
+		else:
+			zomato = zomatopy.initialize_app(zomato_config)
+
+			try:
+				results = zomato.get_city_ID(city)
+				return [SlotSet('location_match',"one")]
+			except:
+				results = "Sorry, didn’t find any such location :("
+
+				dispatcher.utter_message(results)
+
+				return [SlotSet('location_match',"zero")]
+
+
+# Send email the list of 10 restaurants
+class ActionSendEmail(Action):
+	def name(self):
+		return 'action_send_email'
+
+	def run(self, dispatcher, tracker, domain):
+		email = tracker.get_slot('email')
+		
+		# for slack handling
+		if len(email.split("|")) == 2:
+			email = email.split("|")[1]
+
+		import smtplib 
+		s = smtplib.SMTP('smtp.gmail.com',465) 
+		s.starttls() 
+		s.login('upgrad.aiml19@gmail.com','Password@123')
+		message = "The details of all the restaurants you inquried \n \n"
+		#global result_of_last_query
+		message = message + result_of_last_query
+		try:
+			s.sendmail('upgrad.aiml19@gmail.com', str(email), message)
+			s.quit()
+		except:
+			dispatcher.utter_message(email)
+
+		result_of_last_query = ""
+		return [AllSlotsReset()]
+			
